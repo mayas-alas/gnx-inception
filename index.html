@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f1e8" />
+    <title>Mintar un agente · GNX</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="GNX inicio">
+          <span class="brand-mark" aria-hidden="true">✳</span>
+          <span>GNX <small>AGENT STUDIO</small></span>
+        </a>
+        <div class="topbar-meta">
+          <span class="status-dot"></span>
+          <span>Sesión privada</span>
+          <button class="icon-button" id="resetButton" type="button" title="Reiniciar sesión" aria-label="Reiniciar sesión">↻</button>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">01 / INCUBADORA DE PROYECTOS</p>
+            <h1>Haz nacer al agente que tu proyecto necesita.</h1>
+            <p class="hero-description">Vacía aquí lo que sabes, lo que intuyes y lo que todavía está borroso. Cinco señales bastan para crear un primer agente con dirección.</p>
+          </div>
+          <div class="hero-orbit" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="orbit-core"><span>AI</span></div>
+            <span class="orbit-label label-one">intención</span>
+            <span class="orbit-label label-two">contexto</span>
+            <span class="orbit-label label-three">acción</span>
+          </div>
+        </section>
+
+        <section class="workspace-grid" aria-label="Constructor de agente">
+          <div class="intake-column">
+            <div class="progress-row">
+              <div>
+                <span class="progress-kicker">SEÑAL <span id="stepNumber">01</span> DE 05</span>
+                <strong id="progressTitle">La intención</strong>
+              </div>
+              <span class="progress-percent" id="progressPercent">20%</span>
+            </div>
+            <div class="progress-track"><span id="progressBar"></span></div>
+
+            <article class="question-card" id="questionCard">
+              <div class="question-card-head">
+                <span class="question-type" id="questionType">TEXTO LIBRE</span>
+                <span class="question-index" id="questionIndex">Q1</span>
+              </div>
+              <h2 id="questionTitle">Si este agente solo pudiera resolver una cosa, ¿qué tendría que cambiar?</h2>
+              <p class="question-hint" id="questionHint">Empieza por el resultado que quieres provocar, no por la tecnología que imaginas.</p>
+              <div id="inputArea"></div>
+              <div class="card-actions">
+                <button class="text-button" id="skipButton" type="button">Saltar por ahora <span>→</span></button>
+                <button class="primary-button" id="nextButton" type="button">Guardar señal <span>↗</span></button>
+              </div>
+              <p class="validation-message" id="validationMessage" role="status"></p>
+            </article>
+
+            <div class="keyboard-note"><span>TIP</span> Puedes volver atrás en cualquier momento. El agente conserva cada pista.</div>
+          </div>
+
+          <aside class="blueprint-panel" aria-label="ADN del agente en construcción">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">ADN EN CONSTRUCCIÓN</p>
+                <h2 id="agentName">Agente sin nombre</h2>
+              </div>
+              <span class="pulse-ring" aria-label="Agente activo"></span>
+            </div>
+            <p class="panel-intro">Cada respuesta se convierte en una pieza de criterio para tu futuro compañero de proyecto.</p>
+            <div class="dna-list" id="dnaList"></div>
+            <div class="panel-footer">
+              <span><i class="tiny-dot"></i> Borrador local</span>
+              <span id="savedCount">0 señales guardadas</span>
+            </div>
+          </aside>
+        </section>
+
+        <section class="principles-row">
+          <div><span class="principle-number">A</span><p><strong>Primero el porqué</strong><br />El agente nace de una decisión de negocio.</p></div>
+          <div><span class="principle-number">B</span><p><strong>La voz también es dato</strong><br />Puedes hablar como piensas, sin editarte.</p></div>
+          <div><span class="principle-number">C</span><p><strong>Un primer mapa basta</strong><br />La claridad llega por iteraciones.</p></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="resultModal" aria-hidden="true">
+      <section class="result-modal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+        <button class="close-button" id="closeModal" type="button" aria-label="Cerrar">×</button>
+        <p class="eyebrow">MINT COMPLETADO · 05 / 05</p>
+        <div class="mint-badge"><span>✳</span> AGENTE INICIALIZADO</div>
+        <h2 id="resultTitle">Tu agente ya tiene una razón para existir.</h2>
+        <p class="result-copy">Esto no es una especificación cerrada. Es una brújula compartida para que estrategia y construcción sepan qué hacer después.</p>
+        <div class="result-summary" id="resultSummary"></div>
+        <div class="result-actions">
+          <button class="secondary-button" id="copyButton" type="button">Copiar ficha</button>
+          <button class="primary-button" id="downloadButton" type="button">Descargar JSON <span>↓</span></button>
+        </div>
+        <p class="copy-feedback" id="copyFeedback" role="status"></p>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
