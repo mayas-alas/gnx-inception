@@ -22,7 +22,9 @@ Abrir http://localhost:4173. `PORT` permite cambiar el puerto. El servidor escuc
 
 ## Límites de esta entrega
 
-Sin IA externa ni agente ejecutor conectado. La revisión conserva las palabras del usuario; no realiza síntesis semántica generativa. La detección de tensiones es por reglas. Los adjuntos no se consideran evidencia corroborada automáticamente. Persistencia solo en este navegador: no hay cuentas, sincronización o almacenamiento de servidor. Borrar los datos del navegador elimina las sesiones y archivos.
+Con `OPENAI_API_KEY` en `.env`, el servidor consulta OpenAI Responses con `gpt-5.6-luna` y razonamiento `high`: síntesis editable y siguiente pregunta contextual. Sin clave, funciona el motor local. La clave nunca llega al cliente. Solo texto y contexto previo se envían a OpenAI, con `store:false`; los adjuntos permanecen locales. Errores conservan el borrador y permiten reintentar. No hay agente ejecutor conectado. Los adjuntos no se consideran evidencia corroborada automáticamente. Persistencia solo en este navegador: no hay cuentas ni sincronización. Borrar los datos del navegador elimina las sesiones y archivos.
+
+Configura `.env` siguiendo `.env.example` y reinicia `npm start`. `node tests/ai-live.mjs` hace una llamada real con datos ficticios y consume tokens. Pruebas de navegador normales usan modo local sin gasto.
 
 ## Estructura
 

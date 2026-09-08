@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+const start = Date.now();
+const response = await fetch('http://localhost:4173/api/interview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:'story',answer:'Ayer el equipo de ventas rehízo tres propuestas porque los precios de Excel estaban desactualizados. Cada propuesta tarda dos horas. Queremos reducirlo a treinta minutos, pero enviar al cliente requiere aprobación humana.',claims:[]})});
+const result = await response.json();
+assert.equal(response.status,200, result.error);
+assert.ok(result.summary.length > 20);
+assert.ok(result.question.includes('?'));
+assert.equal(result.effort,'high');
+assert.match(result.model,/gpt-5.6-luna/);
+console.log(JSON.stringify({status:'PASS',durationMs:Date.now()-start, ...result},null,2));

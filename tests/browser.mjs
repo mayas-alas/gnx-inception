@@ -4,6 +4,8 @@ import { mkdir } from 'node:fs/promises';
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const context = await browser.newContext({ viewport: { width:1440, height:1000 } });
 const page = await context.newPage();
+// Keep regression deterministic and free; real integration is tested separately.
+await page.route('**/health', route => route.fulfill({json:{mode:'local'}}));
 const errors = []; page.on('pageerror',e => errors.push(e.message));
 try {
   await page.goto('http://localhost:4173');

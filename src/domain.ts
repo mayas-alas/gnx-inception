@@ -11,7 +11,8 @@ export const topics = [
 export type TopicId = typeof topics[number]['id'];
 export type Claim = { id: string; topic: TopicId; text: string; original: string; reviewed: boolean; uncertain: boolean; sourceId: string; createdAt: string };
 export type Evidence = { id: string; name: string; type: string; size: number; text?: string; createdAt: string; status: 'read' | 'attached'; topic: TopicId };
-export type Session = { id: string; title: string; createdAt: string; updatedAt: string; claims: Claim[]; skipped: TopicId[]; evidence: Evidence[]; draft: string; current: TopicId; view: 'interview' | 'brief'; pending?: Claim; route?: string; demo?: boolean };
+export type AiTurn = { summary: string; uncertain: boolean; nextTopic: TopicId; question: string; reason: string; model: string; effort: string };
+export type Session = { id: string; title: string; createdAt: string; updatedAt: string; claims: Claim[]; skipped: TopicId[]; evidence: Evidence[]; draft: string; current: TopicId; view: 'interview' | 'brief'; pending?: Claim; route?: string; demo?: boolean; aiTurn?: AiTurn };
 export const uid = () => crypto.randomUUID();
 export function createSession(): Session { const now = new Date().toISOString(); return { id: uid(), title: 'Mi próximo proyecto', createdAt: now, updatedAt: now, claims: [], skipped: [], evidence: [], draft: '', current: 'story', view: 'interview' }; }
 export function nextTopic(s: Session): TopicId | undefined {

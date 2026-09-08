@@ -5,6 +5,7 @@ const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&a
 let store: Store;
 try { store = load(); } catch { root.innerHTML = '<main><h1>No pudimos recuperar tu sesión.</h1><p>Los datos originales se conservaron. Abre otro perfil del navegador para iniciar una sesión nueva.</p></main>'; throw Error('Storage recovery required'); }
 let s = store.sessions.find(x => x.id === store.activeId) ?? store.sessions[0];
+let aiEnabled = false; let aiLabel = 'Comprobando conexión…';
 let recorder: MediaRecorder | undefined; let busy = false; let saved = true; let toastTimer: ReturnType<typeof setTimeout>; let urls: string[] = [];
 function notify(text: string) { const el = document.querySelector('#toast')!; el.textContent = text; el.classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('visible'), 4500); }
 function persist() { s.updatedAt = new Date().toISOString(); try { save(store); saved = true; } catch { saved = false; notify('No se pudo guardar. Conserva esta pestaña abierta y copia tu brief.'); } const el = document.querySelector('#saved'); if (el) el.textContent = saved ? '✓ Guardado en este navegador' : 'No guardado'; }
@@ -12,11 +13,16 @@ function render() {
   urls.forEach(URL.revokeObjectURL); urls = [];
   const count = topics.filter(t => latest(s, t.id)).length;
   root.innerHTML = `<header><a class="brand" href="/" aria-label="GNX inicio"><b>✳</b> gnx <small>PROJECT STUDIO</small></a><div class="header-actions"><span>● Espacio local</span><button id="new">＋ Nuevo proyecto</button></div></header><div class="shell"><aside class="rail"><p class="eyebrow">TU ESPACIO DE TRABAJO</p><label class="sr" for="sessions">Proyecto activo</label><select id="sessions">${store.sessions.map(x => `<option value="${x.id}" ${x.id === s.id ? 'selected' : ''}>${esc(x.title)}${x.demo ? ' · ejemplo' : ''}</option>`).join('')}</select><nav aria-label="Vistas"><button data-view="interview" class="${s.view === 'interview' ? 'active' : ''}">◉ Inception <small>01</small></button><button data-view="brief" class="${s.view === 'brief' ? 'active' : ''}">▤ Brief del proyecto <small>02</small></button></nav><div class="rail-note"><span>✳</span><h3>Las buenas preguntas<br>abren posibilidades.</h3><p>No necesitas tenerlo todo claro para comenzar.</p></div><details class="demos"><summary>Explorar un ejemplo</summary><button data-demo="0">Una idea por explorar ↗</button><button data-demo="1">Un proceso que mejorar ↗</button><button data-demo="2">Una meta de negocio ↗</button></details><p class="rail-foot">GNX INCEPTION <span>v1.0</span></p></aside><main id="workspace"><div class="topline"><span>Proyectos <i>/</i> ${s.demo ? 'Sesión de ejemplo' : 'Nueva posibilidad'}</span><span id="saved">${saved ? '✓ Guardado en este navegador' : 'No guardado'}</span></div><div class="hero"><div><p class="eyebrow purple">DE LA IDEA A LA CLARIDAD</p><h1>${s.view === 'brief' ? 'Tu proyecto, con dirección.' : count ? 'Tu proyecto empieza a tomar forma.' : 'Todo empieza con una conversación.'}</h1><p class="intro">${s.view === 'brief' ? 'Un mapa compartido para decidir qué hacer después.' : 'Trae lo que sabes. Vamos a encontrar juntos lo que importa.'}</p></div><span aria-hidden="true">✳</span></div><div class="workspace-grid"><section class="conversation">${s.view === 'brief' ? brief() : interview()}<footer><span>◌ A tu ritmo. Puedes volver cuando quieras.</span><span>Motor local · sin IA conectada</span></footer></section><aside class="map"><p class="eyebrow">TU MAPA VIVO</p><h2>Una idea. Más claridad.</h2><div class="clarity"><span>${count === 0 ? 'Un espacio para empezar' : count < 4 ? 'Encontrando el foco' : 'Ya tiene forma'}</span><strong>${count}<small> / 8</small></strong></div><div class="segments" aria-label="${count} de 8 dimensiones exploradas">${topics.map(t => `<i class="${latest(s,t.id) ? 'filled' : ''}"></i>`).join('')}</div><p class="caption">Dimensiones exploradas, no hechos verificados.</p><div class="map-list">${topics.map((t,i) => `<button data-topic="${t.id}" class="${s.current === t.id && s.view === 'interview' ? 'current' : ''}"><span>${latest(s,t.id) ? '✓' : '0' + (i+1)}</span><div><strong>${t.short}</strong><small>${latest(s,t.id) ? latest(s,t.id)?.uncertain ? 'Por validar' : 'Aportado por ti' : s.skipped.includes(t.id) ? 'Pendiente para después' : 'Por explorar'}</small></div><span>↗</span></button>`).join('')}</div><p class="map-note">↳ ${count ? 'Tu perspectiva ya está aquí. Después podremos contrastarla con quienes viven el proceso.' : 'No hay respuestas perfectas. Empieza con un ejemplo concreto; encontraremos los detalles juntos.'}</p><button class="outline full" data-view="${s.view === 'brief' ? 'interview' : 'brief'}">${s.view === 'brief' ? 'Seguir conversando' : 'Ver mi brief'} ↗</button></aside></div></main></div>`;
+  const footerLabel = document.querySelector('footer span:last-child');
+  if (footerLabel) footerLabel.textContent = aiLabel;
+  if (s.pending && s.aiTurn) { const hint = document.querySelector('.card .hint'); if (hint) hint.textContent = 'Luna organizó tu aporte. Revisa y corrige la síntesis antes de incorporarla al mapa.'; }
+  if (aiEnabled && !s.pending && s.view === 'interview') { const caption = document.querySelector('.caption.right'); if (caption) caption.textContent = 'Al continuar, tu texto y contexto previo se envían a OpenAI. Los adjuntos permanecen locales.'; }
   bind();
 }
 function interview() {
   if (s.pending) return `<article class="card"><div class="kicker"><span>✳</span> UNA PAUSA PARA ENTENDERNOS <small>Revisión</small></div><h2>Esto es lo que me llevo.</h2><p class="hint">Conservé tus palabras. Afina lo que quieras antes de incorporarlo al mapa.</p><label for="review">Tu aporte revisado</label><textarea id="review" rows="7" maxlength="12000">${esc(s.pending.text)}</textarea><details class="source"><summary>Ver aporte original</summary><p>${esc(s.pending.original)}</p></details><p class="notice">La revisión confirma tu intención. El contenido sigue siendo reportado por ti, sin corroboración externa.</p><div class="actions"><button id="uncertain">Es una estimación</button><button id="confirm" class="primary">Así es, continuemos ↗</button></div><button id="back" class="back">← Volver a mi respuesta</button></article>`;
-  const t = topics.find(x => x.id === s.current)!;
+  const base = topics.find(x => x.id === s.current)!;
+  const t = s.aiTurn?.nextTopic === s.current ? {...base, question:s.aiTurn.question, reason:s.aiTurn.reason} : base;
   return `<article class="card"><div class="kicker"><span>✳</span> ${esc(t.label.toUpperCase())} <small>${s.claims.length ? 'Sigamos explorando' : 'Empecemos aquí'}</small></div><h2>${esc(t.question)}</h2><p class="hint">${esc(t.hint)}</p><p class="reason">↳ ${esc(t.reason)}</p><label class="sr" for="answer">Tu respuesta</label><textarea id="answer" rows="6" maxlength="12000" placeholder="Escribe como se lo contarías a alguien de tu equipo…">${esc(s.draft)}</textarea><div class="input-tools"><div><button id="record">◉ Grabar voz</button><button id="attach">＋ Adjuntar</button><input id="file" type="file" hidden accept="audio/*,.txt,.md,.csv,.pdf,.docx,.png,.jpg"></div><span id="count">${s.draft.length} / 12 000</span></div><p id="recording" role="status"></p><div class="starters"><p>¿Un punto de partida?</p>${t.starters.map(x => `<button data-starter="${esc(x)}">${esc(x)} ↗</button>`).join('')}</div>${evidence()}<div class="actions"><button id="skip">No lo sé todavía</button><button id="submit" class="primary" ${s.draft.trim() ? '' : 'disabled'}>Encontrar claridad ↗</button></div><p class="caption right">Autosave activo · Ctrl + Enter para continuar</p></article>${s.claims.length ? `<details class="history"><summary>Lo que ya compartiste · ${s.claims.length} aportes</summary>${s.claims.map(c => `<article><small>${esc(topics.find(t => t.id === c.topic)?.short)} · ${c.uncertain ? 'Por validar' : 'Reportado'}</small><p>${esc(c.text)}</p><details><summary>Fuente original</summary><p>${esc(c.original)}</p></details></article>`).join('')}</details>` : '<div class="welcome"><span>✧</span><div><strong>Tu conocimiento es el punto de partida.</strong><p>Texto, notas o una historia reciente. No hace falta hablar de tecnología.</p></div></div>'}`;
 }
 function evidence() { return s.evidence.length ? `<div class="evidence">${s.evidence.map(f => `<div><span>▧</span><section><strong>${esc(f.name)}</strong><small>${f.status === 'read' ? 'Texto disponible · sin corroboración' : f.type.startsWith('audio/') ? 'Audio local · transcripción manual pendiente' : 'Adjunto local · contenido sin analizar'}</small></section><button data-open="${f.id}" aria-label="Abrir ${esc(f.name)}">Abrir</button><button data-remove="${f.id}" aria-label="Eliminar ${esc(f.name)}">×</button></div>`).join('')}<section id="preview"></section></div>` : ''; }
@@ -34,7 +40,7 @@ function bind() {
   document.querySelectorAll<HTMLElement>('[data-starter]').forEach(b => b.onclick = () => { const input = document.querySelector<HTMLTextAreaElement>('#answer')!; input.value += (input.value ? '\n' : '') + b.dataset.starter; input.dispatchEvent(new Event('input')); input.focus(); });
   on('submit','click',submit);
   on('review','input', ev => { if (s.pending) { s.pending.text = (ev.target as HTMLTextAreaElement).value; persist(); } });
-  const confirm = (uncertain: boolean) => { if (!s.pending?.text.trim()) return notify('Añade una frase para continuar.'); confirmClaim(s,s.pending.text,uncertain); persist(); render(); notify('Aporte guardado. Tu mapa ganó claridad.'); };
+  const confirm = (uncertain: boolean) => { if (!s.pending?.text.trim()) return notify('Añade una frase para continuar.'); confirmClaim(s,s.pending.text,uncertain); if (s.aiTurn && s.view !== 'brief') s.current = s.aiTurn.nextTopic; persist(); render(); notify('Aporte guardado. Tu mapa ganó claridad.'); };
   on('confirm','click',() => confirm(false)); on('uncertain','click',() => confirm(true));
   on('back','click',() => { s.pending = undefined; persist(); render(); });
   on('skip','click',() => { if (!canNavigate()) return; if (s.draft.trim()) return notify('Guarda tu borrador o vacía el campo para dejarlo pendiente.'); if (!s.skipped.includes(s.current)) s.skipped.push(s.current); const next = nextTopic(s); if (next) s.current = next; else s.view = 'brief'; persist(); render(); });
@@ -52,7 +58,27 @@ function bind() {
   document.querySelectorAll<HTMLElement>('[data-open]').forEach(b => b.onclick = () => { void open(b.dataset.open!); });
   document.querySelectorAll<HTMLElement>('[data-remove]').forEach(b => b.onclick = async () => { if (!canNavigate()) return; try { await deleteFile(b.dataset.remove!); s.evidence = s.evidence.filter(f => f.id !== b.dataset.remove); persist(); render(); notify('Adjunto eliminado del navegador; no se puede deshacer.'); } catch { notify('No se pudo eliminar el archivo.'); } });
 }
-function submit() { if (!canNavigate() || !s.draft.trim() || s.pending) return; s.pending = prepareClaim(s,s.draft); persist(); render(); document.querySelector<HTMLTextAreaElement>('#review')?.focus(); }
+async function submit() {
+  if (!canNavigate() || !s.draft.trim() || s.pending) return;
+  const claim = prepareClaim(s,s.draft); persist();
+  if (aiEnabled) {
+    busy = true;
+    const button = document.querySelector<HTMLButtonElement>('#submit');
+    const answer = document.querySelector<HTMLTextAreaElement>('#answer');
+    if (button) { button.disabled = true; button.textContent = 'Luna está organizando tu aporte…'; }
+    if (answer) answer.readOnly = true;
+    try {
+      const response = await fetch('/api/interview',{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(65000),body:JSON.stringify({topic:s.current,answer:claim.original,claims:s.claims.slice(-30).map(c => ({topic:c.topic,text:c.text}))})});
+      const result = await response.json();
+      if (!response.ok) throw Error(result.error || 'No se pudo consultar OpenAI.');
+      s.aiTurn = result; claim.text = result.summary; claim.uncertain = claim.uncertain || result.uncertain;
+    } catch (error) {
+      busy = false; render(); notify(error instanceof Error ? error.message : 'OpenAI no respondió. Tu borrador sigue guardado.'); return;
+    }
+    busy = false;
+  } else s.aiTurn = undefined;
+  s.pending = claim; persist(); render(); document.querySelector<HTMLTextAreaElement>('#review')?.focus();
+}
 async function copy(text: string) { try { await navigator.clipboard.writeText(text); notify('Copiado.'); } catch { notify('El navegador bloqueó el portapapeles. Puedes seleccionar el texto del brief.'); } }
 async function attach(file: File) {
   if (file.size > 25 * 1024 * 1024) return notify('Máximo 25 MB por archivo.');
@@ -75,3 +101,4 @@ async function record() {
 }
 window.addEventListener('beforeunload',ev => { if (!saved || busy || recorder?.state === 'recording') { ev.preventDefault(); ev.returnValue = ''; } });
 render();
+void fetch('/health').then(r => r.json()).then(config => { aiEnabled = config.mode === 'openai'; aiLabel = aiEnabled ? `${config.model} · ${config.effort}` : 'Motor local · sin IA conectada'; render(); }).catch(() => { aiLabel = 'Motor local · conexión no disponible'; render(); });
