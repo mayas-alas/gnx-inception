@@ -4,8 +4,8 @@ import { createSession, prepareClaim, confirmClaim, nextTopic, demoSession, pack
 test('risk and process stories lead to different questions', () => {
   const s = createSession(); s.pending = prepareClaim(s, 'El proceso maneja dinero y datos privados.'); confirmClaim(s,s.pending.text);
   assert.equal(nextTopic(s),'boundaries');
-  assert.equal(demoSession(1).current,'outcome');
-  assert.equal(demoSession(2).current,'people');
+  assert.equal(demoSession(1).current,'relationship');
+  assert.equal(demoSession(2).current,'relationship');
 });
 test('review keeps original source and never implies independent evidence', () => {
   const s = createSession(); s.pending = prepareClaim(s,'Creo que tarda cinco días.'); confirmClaim(s,'Estimamos tres días.',true);

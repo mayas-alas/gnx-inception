@@ -14,7 +14,7 @@ try {
   await page.locator('#submit').click();
   await page.locator('#review').fill('Ayer se rehízo una propuesta porque Excel tenía precios antiguos.');
   await page.locator('#confirm').click();
-  assert.match(await page.locator('.card h2').textContent(),/30 días/);
+  assert.match(await page.locator('.card h2').textContent(),/Quién vive/);
   await page.locator('#file').setInputFiles({ name:'ejemplo.txt', mimeType:'text/plain', buffer:Buffer.from('Tres propuestas requirieron revisión.') });
   await page.locator('[data-open]').waitFor(); await page.locator('[data-open]').click();
   await expect(page.locator('#preview')).toContainText('Tres propuestas');

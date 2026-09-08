@@ -3,7 +3,7 @@ const browser = await chromium.launch({channel:'msedge',headless:true});
 const page = await browser.newPage();
 await page.route('**/health',route => route.fulfill({json:{mode:'openai',model:'gpt-5.6-luna',effort:'high'}}));
 let fail = true;
-await page.route('**/api/interview',route => route.fulfill(fail ? {status:502,json:{error:'La clave OpenAI fue rechazada.'}} : {json:{summary:'El equipo necesita precios vigentes para sus propuestas.',uncertain:false,nextTopic:'sources',question:'¿Quién mantiene la lista de precios?',reason:'Necesitamos identificar la fuente confiable.',model:'gpt-5.6-luna',effort:'high'}}));
+await page.route('**/api/interview',route => route.fulfill(fail ? {status:502,json:{error:'La clave OpenAI fue rechazada.'}} : {json:{summary:'El equipo necesita precios vigentes para sus propuestas.',uncertain:false,kind:'project',nextQuestionId:'sources.owner',nextTopic:'sources',question:'¿Quién mantiene la lista de precios?',reason:'Necesitamos identificar la fuente confiable.',model:'gpt-5.6-luna',effort:'high'}}));
 try {
   await page.goto('http://localhost:4173');
   await expect(page.locator('footer')).toContainText('gpt-5.6-luna');

@@ -1,6 +1,6 @@
 {
   "name": "gnx-inception", "version": "1.0.0", "private": true, "type": "module",
-  "scripts": { "build": "tsc", "start": "npm run build && node server.mjs", "test": "npm run build && node --test tests/*.test.mjs", "test:ui": "node tests/browser.mjs" },
+  "scripts": { "build": "tsc", "start": "npm run build && node server.mjs", "test": "npm run build && node --test tests/*.test.mjs", "test:ui": "node tests/browser.mjs && node tests/ai-browser.mjs && node tests/flow-browser.mjs" },
   "engines": { "node": ">=22" },
   "devDependencies": { "typescript": "^5.9.3", "@playwright/test": "^1.55.0" }
 }

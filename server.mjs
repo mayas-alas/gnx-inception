@@ -29,7 +29,7 @@ createServer(async (req, res) => {
     finally { aiBusy = false; }
   }
   const safe = path === '/' ? 'index.html' : path.slice(1);
-  if (!['index.html', 'ui.css', 'favicon.svg'].includes(safe) && !/^dist\/[a-zA-Z0-9_/-]+\.js$/.test(safe)) { res.writeHead(404); return res.end('Not found'); }
+  if (!['index.html', 'ui.css', 'flow-ui.css', 'favicon.svg'].includes(safe) && !/^dist\/[a-zA-Z0-9_/-]+\.js$/.test(safe)) { res.writeHead(404); return res.end('Not found'); }
   try {
     const data = await readFile(root + safe);
     res.writeHead(200, { 'Content-Type': types[safe.slice(safe.lastIndexOf('.'))] || 'text/plain', 'Cache-Control': 'no-store' });
