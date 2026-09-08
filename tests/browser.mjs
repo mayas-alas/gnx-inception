@@ -1,0 +1,38 @@
+import { chromium, expect } from '@playwright/test';
+import assert from 'node:assert/strict';
+import { mkdir } from 'node:fs/promises';
+const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const context = await browser.newContext({ viewport: { width:1440, height:1000 } });
+const page = await context.newPage();
+const errors = []; page.on('pageerror',e => errors.push(e.message));
+try {
+  await page.goto('http://localhost:4173');
+  await page.locator('#answer').fill('Ayer una propuesta usó precios antiguos de Excel y tuvimos que rehacerla.');
+  await page.reload(); assert.match(await page.locator('#answer').inputValue(),/precios antiguos/);
+  await page.locator('#submit').click();
+  await page.locator('#review').fill('Ayer se rehízo una propuesta porque Excel tenía precios antiguos.');
+  await page.locator('#confirm').click();
+  assert.match(await page.locator('.card h2').textContent(),/30 días/);
+  await page.locator('#file').setInputFiles({ name:'ejemplo.txt', mimeType:'text/plain', buffer:Buffer.from('Tres propuestas requirieron revisión.') });
+  await page.locator('[data-open]').waitFor(); await page.locator('[data-open]').click();
+  await expect(page.locator('#preview')).toContainText('Tres propuestas');
+  await page.locator('[data-view="brief"]').first().click();
+  await page.locator('#title').fill('Propuestas con claridad');
+  await page.locator('#handoff').click();
+  await page.reload();
+  assert.equal(await page.locator('#title').inputValue(),'Propuestas con claridad');
+  assert.match(await page.locator('.brief').textContent(),/precios antiguos/);
+  await page.locator('[data-topic="outcome"]').first().click();
+  await page.locator('#answer').fill('<img src=x onerror=alert(1)> Reducir de cinco días a dos.');
+  await page.locator('#submit').click(); await page.locator('#confirm').click();
+  assert.equal(await page.locator('img').count(),0);
+  await page.locator('#new').click();
+  assert.equal(await page.locator('#answer').inputValue(),'');
+  await mkdir('test-results',{recursive:true});
+  await page.screenshot({path:'test-results/desktop.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),true);
+  await page.screenshot({path:'test-results/mobile.png',fullPage:true});
+  assert.deepEqual(errors,[]);
+  console.log('PASS: draft reload, review, adaptation, file persistence, brief, handoff, escaping, new session, mobile layout.');
+} finally { await browser.close(); }
