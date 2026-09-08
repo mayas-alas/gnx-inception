@@ -8,14 +8,15 @@ const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 let aiBusy = false;
 createServer(async (req, res) => {
   const path = new URL(req.url || '/', 'http://localhost').pathname;
+  const host = req.headers.host || '';
+  const allowedOrigins = new Set(['http://localhost:' + port, 'http://127.0.0.1:' + port, 'https://' + host, 'http://' + host]);
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
   const json = (status, data) => { res.writeHead(status, {'Content-Type':'application/json','Cache-Control':'no-store'}); res.end(JSON.stringify(data)); };
-  if (![`localhost:${port}`, `127.0.0.1:${port}`].includes(req.headers.host)) return json(403,{error:'Host no permitido.'});
   if (path === '/health') return json(200,{status:'ok',service:'gnx-inception',mode:configured ? 'openai' : 'local',model:configured ? model : null,effort:configured ? effort : null});
   if (path === '/api/interview') {
     if (req.method !== 'POST') return json(405,{error:'POST requerido.'});
-    if (req.headers.origin && ![`http://localhost:${port}`,`http://127.0.0.1:${port}`].includes(req.headers.origin)) return json(403,{error:'Origen no permitido.'});
+    if (req.headers.origin && !allowedOrigins.has(req.headers.origin)) return json(403,{error:'Origen no permitido.'});
     if (!req.headers['content-type']?.startsWith('application/json')) return json(415,{error:'JSON requerido.'});
     if (aiBusy) return json(429,{error:'Hay una solicitud en curso. Espera un momento.'});
     aiBusy = true;
@@ -35,4 +36,4 @@ createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': types[safe.slice(safe.lastIndexOf('.'))] || 'text/plain', 'Cache-Control': 'no-store' });
     res.end(data);
   } catch { res.writeHead(404); res.end('Not found'); }
-}).listen(port, '127.0.0.1', () => console.log(`GNX Inception running at http://localhost:${port}`));
+}).listen(port, '127.0.0.1', () => console.log('GNX Inception running at http://localhost:' + port));
